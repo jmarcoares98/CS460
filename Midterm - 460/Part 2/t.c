@@ -11,7 +11,7 @@ int procsize = sizeof(PROC);
 #include "exceptions.c"
 #include "kernel.c"
 #include "wait.c"
-#include "semaphore.c"
+#include "pc.c"
 
 void copy_vectors(void) {
     extern u32 vectors_start;
@@ -48,7 +48,7 @@ int main()
    color = WHITE;
    fbuf_init();
    kbd_init(); 
-   semaphore_init();
+   pc_init();
    
    // enable VIC for IRQ 31
    VIC_INTENABLE |= (1<<31); // SIC to VIC's IRQ31

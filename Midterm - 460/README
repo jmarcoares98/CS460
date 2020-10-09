@@ -1,0 +1,91 @@
+CS460 Takehome Midterm Exam
+  
+                     DUE: 10-9-2020
+                       DEMO to TA 
+             Turn in a hardcopy of your code
+
+1. Timer Service
+
+With a hardware timer, e.g. timer0, the OS kernel can provide each process
+with a virtual timer. A process may request an interval timer of t seconds by 
+the command 't', which asks for a time value in t seconds. The 't' command 
+causes the process to sleep for t seconds. When its interval time expires, the 
+timer interrupt handler wakes up the process, allowing it to continue.
+
+The timer requests of processes are maintained in a timer queue containing Time
+Queue Elements (TQEs), which looks like the following:
+
+     tq ->  tqe ->     tqe ->    tqe -> NULL 
+           ------    ------    ------    
+           | 5  |    |  8 |    | 17 |   (time in seconds to expire)
+           | *2 |    | *1 |    | *3 |   (*pid means &proc[pid])
+           ------    ------    ------
+
+At each second, the timer interrupt handler decrements the time field of each 
+TQE by 1. When a TQE's time decrements to 0, the interrupt handler deletes its
+TQE from tq and wakes up the process.
+
+For example, after 5 seconds, it deletes the tqe of PROC2 and wakes up process 
+P2. 
+
+In the above timer queue, the time field of each TQE contains the exact time
+remaining. The disadvantage of this scheme is that the interrupt handler must 
+decrement the time field of each and every TQE. In general, an interrupt handler
+should complete an interrupt processing as quickly as possible. This is 
+especially important for the timer interrupt handler. Otherwise, it may loss 
+ticks or even never finish. In contrast, when a process enters a timer request,
+it also manipulates the timer queue but the process does not have the same kind
+of critical time constraints. We can speed up the timer interrupt handler by 
+modifying the timer queue as follows.
+
+     tq ->  tqe ->    tqe ->    tqe -> NULL 
+           ------    ------    ------    
+           | 5  |    |  3 |    |  9 |   (relative time)
+           | *2 |    | *1 |    | *3 |   (pointer to proc[pid])
+           ------    ------    ------
+
+In the modified timer queue, the time field of each TQE is relative to the
+cummulative time of all the preceeding TQEs. At each second, the timer interrupt
+handler only needs to decrement the time of the first TQE and process any TQE
+whose time has expired. With this setup, insertion/deletion of a TQE must be
+done carefully. 
+
+                          REQUIREMENT:
+
+                On YOUR basecode of LAB#4:
+Implement a timer queue to support interval timer requests of processes.
+Add a 't SECONDS' command, which
+         enter a TQE into the timer queue;
+         process goes to sleep (e.g. on its TQE)
+
+Modify the timer interrupt handler to:
+         dispaly the current timer queue every second;
+         handle TQEs and wake up any process whose time has expired;
+
+During demo, let P1 kfork() serveral processes, e.g. P2, P3, P4. Then P1 wait()
+                    P2: t 30
+                    P3: t 20
+                    P4: t  5
+etc.
+
+2. Implement the producer-consumer problem of Chapter 5.10.1
+(1). Write your code for P(), V() on semaphores. 
+(2). Set buffer size N = 8
+(3). Let P1 kfork P2 as producer, P3 as consumer, then P1 wait().
+(4). P2: ask for a line of chars to write to buffer; 
+(5). P3: read and print char from buffer.
+
+
+3. Download pipe.tgz from samples/MIDTERM. It implements the pipe in Chapter 5.
+   Howver, it does NOT handle the cases: 
+   (1). BROKEN PIPE: when a pipe writer detects there are no readers 
+                     on the pipe. Writer must return -1 and exit.
+   (2). When a pipe reader detects there are no writer AND no data, it must
+        return 0 as the number of bytes read.
+
+                     Requirement
+Modify the pipe struct and pipe_write()/pipe_read() functions to handle the
+above cases.
+During DEMO: Create 2 cases:
+(1). Pipe writer write only once, pipe reader in a while(1) loop
+(2). Pipe writer in a while(1) loop, pipe reader only read once.

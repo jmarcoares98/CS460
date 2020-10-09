@@ -1,0 +1,21 @@
+Juan Marco Ares
+11526185
+CptS 460
+Lab 2 
+ 1. What does the following statement do?
+arm-none-eabi-as -mcpu=arm926ej-s ts.s -o ts.o
+It creates an object file 'ts.o' for ts.s which is our assembly code.
+
+# 2. What does the following statement do?
+arm-none-eabi-gcc -c -mcpu=arm926ej-s t.c -o t.o
+This compiles t.c and it creates an object file 't.o'.
+
+# 3. What does the following statement do?
+arm-none-eabi-ld -T t.ld ts.o t.o -o t.elf
+ld is a linker, so it links the object files we created from the 
+two previous lines in order for it to be executable.
+
+# 4. What does the following statement do?
+arm-none-eabi-objcopy -O binary t.elf t.bin
+This is where it gets/copies all the contents from the elf file
+and turn it into an executable file.

@@ -44,26 +44,65 @@ void IRQ_handler()
     }
 }
 
-int pipe_writer()
+int pipe_writer_once() 
 {
-  char c, *cp; 
-  int i;
-  struct uart *up = &uart[0];
-  char line[128];
-  
-  while(1){     // for (i=0; i<2; i++){ // for writer to exit
-    uprintf("Enter a line for proc1 to get : ");
-    ugets(up, line);
-    uprintf("\n");
-    
-    printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
-    write_pipe(kpipe, line, strlen(line));
-  }
-  printf("pipe wrtier exit\n", running->pid);
-  kexit(0);
+    int i;
+    struct uart* up = &uart[0];
+    char line[128];
+
+    for (i=0; i<1; i++){ // for writer to exit
+        uprintf("Enter a line for proc1 to get : ");
+        ugets(up, line);
+        uprintf("\n");
+
+        printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
+        write_pipe(kpipe, line, strlen(line));
+    }
+    printf("pipe writer exit\n", running->pid);
+    kexit(0);
 }
 
-int pipe_reader()
+int pipe_writer_loop()
+{
+    int i;
+    struct uart* up = &uart[0];
+    char line[128];
+
+    while(1) { // for writer to exit
+        uprintf("Enter a line for proc1 to get : ");
+        ugets(up, line);
+        uprintf("\n");
+
+        printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
+        write_pipe(kpipe, line, strlen(line));
+    }
+    printf("pipe writer exit\n", running->pid);
+    kexit(0);
+}
+
+int pipe_reader_once()
+{
+    char c, * cp;
+    char line[128];
+    int i, n;
+
+    for (i=0; i<1; i++){  // for reader to exit
+        printf("proc%d reading from pipe\n", running->pid);
+        n = read_pipe(kpipe, line, 20);
+        line[n] = 0;
+
+        printf("proc%d read n=%d bytes from pipe : %s\n", running->pid, n, line);
+
+        if (n == 0) {
+            printf("proc%d read 0 bytes\n", running->pid);
+            kgetc();
+        }
+    }
+    printf("pipe reader %d exit\n", running->pid);
+    kexit(1);
+}
+
+int pipe_reader_loop()
 {
   char c, *cp; 
   char line[128];
@@ -84,48 +123,95 @@ int pipe_reader()
   printf("pipe reader %d exit\n", running->pid);
   kexit(1);
 }
-  
+
+int pipe_writer()
+{
+    int i;
+    struct uart* up = &uart[0];
+    char line[128];
+
+    while (1) { // for writer to exit
+        uprintf("Enter a line for proc1 to get : ");
+        ugets(up, line);
+        uprintf("\n");
+
+        printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
+        write_pipe(kpipe, line, strlen(line));
+    }
+    printf("pipe writer exit\n", running->pid);
+    kexit(0);
+}
+
+int pipe_reader()
+{
+    char c, * cp;
+    char line[128];
+    int i, n;
+
+    while(1) {  // for reader to exit
+        printf("proc%d reading from pipe\n", running->pid);
+        n = read_pipe(kpipe, line, 20);
+        line[n] = 0;
+
+        printf("proc%d read n=%d bytes from pipe : %s\n", running->pid, n, line);
+
+        if (n == 0) {
+            printf("proc%d read 0 bytes\n", running->pid);
+            kgetc();
+        }
+    }
+    printf("pipe reader %d exit\n", running->pid);
+    kexit(1);
+}
+
 int main()
-{ 
-   int i; 
-   char line[128]; 
-   u8 kbdstatus, key, scode;
-   KBD *kp = &kbd;
-   color = WHITE;
-   row = col = 0; 
+{
+    int i, j;
+    char line[128];
+    u8 kbdstatus, key, scode;
+    KBD* kp = &kbd;
+    color = WHITE;
+    row = col = 0;
 
-   fbuf_init();
-   kprintf("Welcome to Wanix in ARM\n");
+    fbuf_init();
+    kprintf("Welcome to Wanix in ARM\n");
 
-   
-   /* enable timer0,1, uart0,1 SIC interrupts */
-   VIC_INTENABLE = 0;
-   VIC_INTENABLE |= (1<<12); // UART0 at bit12
-   VIC_INTENABLE |= (1<<13); // UART2 at bit13 
-   VIC_INTENABLE |= (1<<31); // SIC to VIC's IRQ31
-   
-   /* enable KBD IRQ */
-   SIC_INTENABLE = (1<<3); // KBD int=bit3 on SIC
-   SIC_ENSET = (1<<3);  // KBD int=3 on SIC
-   *(kp->base+KCNTL) = 0x12;
 
-   uart_init();
-   kbd_init();
+    /* enable timer0,1, uart0,1 SIC interrupts */
+    VIC_INTENABLE = 0;
+    VIC_INTENABLE |= (1 << 12); // UART0 at bit12
+    VIC_INTENABLE |= (1 << 13); // UART2 at bit13 
+    VIC_INTENABLE |= (1 << 31); // SIC to VIC's IRQ31
 
-   pipe_init();
-   kpipe = create_pipe();   
+    /* enable KBD IRQ */
+    SIC_INTENABLE = (1 << 3); // KBD int=bit3 on SIC
+    SIC_ENSET = (1 << 3);  // KBD int=3 on SIC
+    *(kp->base + KCNTL) = 0x12;
 
-   init();
+    uart_init();
+    kbd_init();
 
-   kprintf("P0 kfork tasks: ");
-   kfork((int)pipe_writer, 1);
-   kfork((int)pipe_reader, 1);
+    pipe_init();
+    kpipe = create_pipe();
 
-   printList("readyQueue", readyQueue);
+    init();
 
-   unlock();
-   while(1){
-     if (readyQueue)
-        tswitch();
-   }
+    // (1). Pipe writer write only once, pipe reader in a while(1) loop
+    kprintf("P0 kfork tasks: ");
+    kfork((int)pipe_writer_loop, 1);
+    kfork((int)pipe_reader_once, 1);
+
+    // (2).Pipe writer in a while (1) loop, pipe reader only read once.
+    kprintf("P0 kfork tasks: ");
+    kfork((int)pipe_writer_once, 1);
+    kfork((int)pipe_reader_loop, 1);
+
+
+    printList("readyQueue", readyQueue);
+
+    unlock();
+    while (1) {
+        if (readyQueue)
+            tswitch();
+    }
 }

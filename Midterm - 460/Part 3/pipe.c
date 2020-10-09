@@ -39,18 +39,26 @@ PIPE *create_pipe()
 
 int read_pipe(PIPE *p, char *buf, int n)
 {
-  int r = 0;
+  int i, r = 0, broken = 0;
 
-  if (n==0) return 0;
-  if (p->status==0) return -1;
+  // validate PIPE pointer p, p->status must not be FREE
+  for (i = 0; i < NPIPE; i++) {
+      if (pipe[i].status == 1) {
+          broken = 1;
+          break;
+      }
+  }
+
+  if (n <= 0) return 0;
+  if (broken = 0, p->status==0) return 0;
+
   while(n){
-
     while(p->data){
       *buf = p->buf[p->tail++];
       p->tail %= PSIZE;
       p->data--; p->room++; buf++; r++; n--;
       if (n==0)
-	break;
+	    break;
     }
 
     kwakeup((int)&p->room);
@@ -62,9 +70,17 @@ int read_pipe(PIPE *p, char *buf, int n)
 
 int write_pipe(PIPE *p, char *buf, int n)
 {
-  int r = 0; 
+  int r = 0, i, broken = 0; 
   
-  if (p->status == 0) return -1;
+  // validate PIPE pointer p, p->status must not be FREE
+  for (i = 0; i < NPIPE; i++) {
+      if (pipe[i].status == 1) {
+          broken = 1;
+          break;
+      }
+  }
+
+  if (broken == 0 && p->status == 0) return -1;
   if (n<=0) return 0;
     
   while(n){

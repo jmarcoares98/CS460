@@ -124,46 +124,6 @@ int pipe_reader_loop()
   kexit(1);
 }
 
-int pipe_writer()
-{
-    int i;
-    struct uart* up = &uart[0];
-    char line[128];
-
-    while (1) { // for writer to exit
-        uprintf("Enter a line for proc1 to get : ");
-        ugets(up, line);
-        uprintf("\n");
-
-        printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
-        write_pipe(kpipe, line, strlen(line));
-    }
-    printf("pipe writer exit\n", running->pid);
-    kexit(0);
-}
-
-int pipe_reader()
-{
-    char c, * cp;
-    char line[128];
-    int i, n;
-
-    while(1) {  // for reader to exit
-        printf("proc%d reading from pipe\n", running->pid);
-        n = read_pipe(kpipe, line, 20);
-        line[n] = 0;
-
-        printf("proc%d read n=%d bytes from pipe : %s\n", running->pid, n, line);
-
-        if (n == 0) {
-            printf("proc%d read 0 bytes\n", running->pid);
-            kgetc();
-        }
-    }
-    printf("pipe reader %d exit\n", running->pid);
-    kexit(1);
-}
-
 int main()
 {
     int i, j;

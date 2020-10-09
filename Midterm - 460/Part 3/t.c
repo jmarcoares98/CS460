@@ -44,20 +44,19 @@ void IRQ_handler()
     }
 }
 
-int pipe_writer_once() 
+int pipe_writer_once()
 {
     int i;
     struct uart* up = &uart[0];
     char line[128];
 
-    for (i=0; i<1; i++){ // for writer to exit
-        uprintf("Enter a line for proc1 to get : ");
-        ugets(up, line);
-        uprintf("\n");
+    uprintf("Enter a line for proc1 to get : ");
+    ugets(up, line);
+    uprintf("\n");
 
-        printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
-        write_pipe(kpipe, line, strlen(line));
-    }
+    printf("\nproc%d writes line=[%s] to pipe\n", running->pid, line);
+    write_pipe(kpipe, line, strlen(line));
+
     printf("pipe writer exit\n", running->pid);
     kexit(0);
 }
@@ -86,18 +85,17 @@ int pipe_reader_once()
     char line[128];
     int i, n;
 
-    for (i=0; i<1; i++){  // for reader to exit
-        printf("proc%d reading from pipe\n", running->pid);
-        n = read_pipe(kpipe, line, 20);
-        line[n] = 0;
+    printf("proc%d reading from pipe\n", running->pid);
+    n = read_pipe(kpipe, line, 20);
+    line[n] = 0;
 
-        printf("proc%d read n=%d bytes from pipe : %s\n", running->pid, n, line);
+    printf("proc%d read n=%d bytes from pipe : %s\n", running->pid, n, line);
 
-        if (n == 0) {
-            printf("proc%d read 0 bytes\n", running->pid);
-            kgetc();
-        }
+    if (n == 0) {
+        printf("proc%d read 0 bytes\n", running->pid);
+        kgetc();
     }
+
     printf("pipe reader %d exit\n", running->pid);
     kexit(1);
 }
@@ -158,13 +156,13 @@ int main()
 
     // (1). Pipe writer write only once, pipe reader in a while(1) loop
     kprintf("P0 kfork tasks: ");
-    kfork((int)pipe_writer_loop, 1);
-    kfork((int)pipe_reader_once, 1);
+    kfork((int)pipe_writer_once, 1);
+    kfork((int)pipe_reader_loop, 1);
 
     // (2).Pipe writer in a while (1) loop, pipe reader only read once.
     kprintf("P0 kfork tasks: ");
-    kfork((int)pipe_writer_once, 1);
-    kfork((int)pipe_reader_loop, 1);
+    kfork((int)pipe_writer_loop, 1);
+    kfork((int)pipe_reader_once, 1);
 
 
     printList("readyQueue", readyQueue);

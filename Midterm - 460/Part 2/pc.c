@@ -40,11 +40,9 @@ int V(SEMAPHORE* s)
 
 int block(SEMAPHORE* s)
 {
-	int SR = int_off();
 	running->status = BLOCK;
 	enqueue(&s->queue, running);
-	tswitch();
-	int_on(SR);
+	tswitch();;
 }
 
 int signal(SEMAPHORE* s)
@@ -79,10 +77,11 @@ int consumer()
 {
 	char item;
 	while (1) {
+		kprintf("consume -> ");
 		P(&full);
 		P(&cmutex);
 		item = buf[tail++];
-		kprintf("%c",item);
+		kprintf("%c \n",item);
 		tail %= BUFSIZE;
 		V(&cmutex);
 		V(&empty);

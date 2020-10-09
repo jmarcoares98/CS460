@@ -41,16 +41,8 @@ int read_pipe(PIPE *p, char *buf, int n)
 {
   int i, r = 0, broken = 0;
 
-  // validate PIPE pointer p, p->status must not be FREE
-  for (i = 0; i < NPIPE; i++) {
-      if (pipe[i].status == 1) {
-          broken = 1;
-          break;
-      }
-  }
-
   if (n <= 0) return 0;
-  if (broken = 0, p->status==0) return 0;
+  if (p->status==0) return 0;
 
   while(n){
     while(p->data){
@@ -70,17 +62,9 @@ int read_pipe(PIPE *p, char *buf, int n)
 
 int write_pipe(PIPE *p, char *buf, int n)
 {
-  int r = 0, i, broken = 0; 
-  
-  // validate PIPE pointer p, p->status must not be FREE
-  for (i = 0; i < NPIPE; i++) {
-      if (pipe[i].status == 1) {
-          broken = 1;
-          break;
-      }
-  }
+  int r = 0, i = 0, broken = 0; 
 
-  if (broken == 0 && p->status == 0) return -1;
+  if (p->status == 0) return -1;
   if (n<=0) return 0;
     
   while(n){

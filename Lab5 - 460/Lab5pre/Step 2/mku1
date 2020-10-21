@@ -1,0 +1,21 @@
+arm-none-eabi-as -mcpu=arm926ej-s us.s -o us.o
+arm-none-eabi-gcc -c -mcpu=arm926ej-s -o u1.o u1.c
+arm-none-eabi-ld -T u.ld us.o u1.o -Ttext=0x80000000 -o u1.elf
+arm-none-eabi-objcopy -O binary u1.elf u1
+
+sudo mount sdimage /mnt
+sudo cp u1 /mnt/bin
+sudo ls -l /mnt/bin
+sudo umount /mnt
+
+rm u1
+rm *.o *.elf
+
+
+
+
+ 
+
+
+
+

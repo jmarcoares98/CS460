@@ -45,7 +45,7 @@ int kernel_init()
 
   running = dequeue(&freeList);
   running->status = READY;
-  running->pgdir = (int *)0x400000; // P0 pgdir at 4MB
+  running->pgdir = (int *)0x400000 + (p->pid)*0x4000; // P0 pgdir at 4MB
   
   printList(freeList);
 }

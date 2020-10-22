@@ -13,7 +13,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
-#include "type.h"
+//#include "type.h"
 extern PROC proc[], *running;
 extern int tswitch();
 
@@ -75,15 +75,18 @@ int svc_handler(int a, int b, int c, int d)
 
   switch(a){ // a is the call number
     
-     case 0: r = kgetpid();          break;
-     case 1: r = kgetppid();         break;
-     case 2: r = kps();              break;
-     case 3: r = kchname((char *)b); break;
-     case 4: r = ktswitch();         break;
+     case 0: r = kgetpid();             break;
+     case 1: r = kgetppid();            break;
+     case 2: r = kps();                 break;
+     case 3: r = kchname((char *)b);    break;
+     case 4: r = ktswitch();            break;
 
-     case 90: r = kgetc();           break;
-     case 91: r = kputc(b);          break;
-     case 92: r = kgetPA();          break;
+     case 5: r = ksleep(running->pid);  break;
+     case 6: r = kwakeup(b);            break;
+
+     case 90: r = kgetc();              break;
+     case 91: r = kputc(b);             break;
+     case 92: r = kgetPA();             break;
      default: printf("invalid syscall %d\n", a);
   }
 

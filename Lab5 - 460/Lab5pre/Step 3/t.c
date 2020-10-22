@@ -27,10 +27,12 @@ int color;
 #include "queue.c"
 #include "kernel.c"
 #include "wait.c"
+#include "sdc.c"
 
 #include "svc.c"
-#include "sdc.c"
-//#include "load.c"
+#include "uPtable.c"
+#include "load.c"
+
 
 void copy_vectors(void) {
     extern u32 vectors_start;

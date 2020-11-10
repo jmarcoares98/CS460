@@ -1,3 +1,0 @@
-mount sdimage /mnt
-ls -l /mnt/bin/*
-umount /mnt

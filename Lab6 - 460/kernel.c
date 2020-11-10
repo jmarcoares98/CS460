@@ -222,7 +222,7 @@ int fork()
     p->pgdir = (int*)(0x400000 + p->pid * 0x4000);
     ptable = p->pgdir;
 
-    for (i = 0; i < 4096; i++)    // zero out pgtable
+    for (i = 0; i < 4096; i++)    
         ptable[i] = 0;
 
     pentry = 0xC12;
